@@ -241,33 +241,6 @@ try {
 }
 
 
-# 6. Patch Runtime Process Name for Task Manager
-$luavmExe = Join-Path $steamPath "millennium\bin\millennium.luavm64.exe"
-if (Test-Path $luavmExe) {
-    try {
-        $bytes = [System.IO.File]::ReadAllBytes($luavmExe)
-        $search = [System.Text.Encoding]::Unicode.GetBytes("Lua plugin runtime for Millennium")
-        $replace = [System.Text.Encoding]::Unicode.GetBytes("PieTools Plugin Runtime for Steam")
-        
-        $found = $false
-        for ($i = 0; $i -le $bytes.Length - $search.Length; $i++) {
-            $match = $true
-            for ($j = 0; $j -lt $search.Length; $j++) {
-                if ($bytes[$i + $j] -ne $search[$j]) { $match = $false; break }
-            }
-            if ($match) {
-                for ($j = 0; $j -lt $replace.Length; $j++) { $bytes[$i + $j] = $replace[$j] }
-                $found = $true
-                break
-            }
-        }
-        if ($found) {
-            [System.IO.File]::WriteAllBytes($luavmExe, $bytes)
-            Write-Success "Patched Task Manager process name to 'PieTools Plugin Runtime for Steam'."
-        }
-    } catch {}
-}
-
 # 6. Windows Defender & Antivirus Comprehensive Exclusions
 Write-Step "Configuring Windows Defender exclusions for Millennium & PieTools..."
 try {

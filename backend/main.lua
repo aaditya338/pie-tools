@@ -97,24 +97,44 @@ local function to_wide(value)
     return buffer
 end
 
+
 local function run_hidden_process(command, wait_ms)
-    local startup = ffi.new("STARTUPINFOW")
-    local process = ffi.new("PROCESS_INFORMATION")
-    startup.cb = ffi.sizeof(startup)
-
-    local command_w = to_wide(command)
-    local create_no_window = 0x08000000 -- CREATE_NO_WINDOW guarantees ZERO cmd window flash
-    local ok = ffi.C.CreateProcessW(nil, command_w, nil, nil, 0, create_no_window, nil, nil, startup, process)
-    if ok == 0 then
-        return false, "Failed to start hidden process"
+    if not command or command == "" then return false end
+    
+    -- Method 1: Millennium native safe process executor (Zero crash risk)
+    if type(m_utils) == "table" and type(m_utils.exec) == "function" then
+        local ok, res = pcall(function()
+            return m_utils.exec(command)
+        end)
+        if ok and res then return true end
     end
 
-    if type(wait_ms) == "number" and wait_ms > 0 then
-        ffi.C.WaitForSingleObject(process.hProcess, wait_ms)
-    end
+    -- Method 2: Safe Win32 CreateProcess via pcall
+    local ok, res = pcall(function()
+        local startup = ffi.new("STARTUPINFOW")
+        local process = ffi.new("PROCESS_INFORMATION")
+        ffi.fill(startup, ffi.sizeof(startup), 0)
+        ffi.fill(process, ffi.sizeof(process), 0)
+        startup.cb = ffi.sizeof(startup)
 
-    ffi.C.CloseHandle(process.hThread)
-    ffi.C.CloseHandle(process.hProcess)
+        local command_w = to_wide(command)
+        local create_no_window = 0x08000000 -- CREATE_NO_WINDOW
+        local status = ffi.C.CreateProcessW(nil, command_w, nil, nil, 0, create_no_window, nil, nil, startup, process)
+        if status == 0 then return false end
+
+        if type(wait_ms) == "number" and wait_ms > 0 and process.hProcess ~= nil then
+            ffi.C.WaitForSingleObject(process.hProcess, wait_ms)
+        end
+
+        if process.hThread ~= nil then pcall(ffi.C.CloseHandle, process.hThread) end
+        if process.hProcess ~= nil then pcall(ffi.C.CloseHandle, process.hProcess) end
+        return true
+    end)
+
+    if ok and res then return true end
+    
+    -- Method 3: Standard fallback
+    pcall(os.execute, 'start /min "" ' .. command)
     return true
 end
 
