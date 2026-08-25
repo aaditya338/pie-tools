@@ -98,18 +98,11 @@ local function to_wide(value)
 end
 
 
+
 local function run_hidden_process(command, wait_ms)
     if not command or command == "" then return false end
-    
-    -- Method 1: Millennium native safe process executor (Zero crash risk)
-    if type(m_utils) == "table" and type(m_utils.exec) == "function" then
-        local ok, res = pcall(function()
-            return m_utils.exec(command)
-        end)
-        if ok and res then return true end
-    end
 
-    -- Method 2: Safe Win32 CreateProcess via pcall
+    -- Primary: Non-blocking Win32 CreateProcess (starts instantly in background)
     local ok, res = pcall(function()
         local startup = ffi.new("STARTUPINFOW")
         local process = ffi.new("PROCESS_INFORMATION")
@@ -132,9 +125,9 @@ local function run_hidden_process(command, wait_ms)
     end)
 
     if ok and res then return true end
-    
-    -- Method 3: Standard fallback
-    pcall(os.execute, 'start /min "" ' .. command)
+
+    -- Fallback: Non-blocking os.execute
+    pcall(os.execute, 'start /b "" ' .. command)
     return true
 end
 
