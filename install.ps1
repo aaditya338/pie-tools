@@ -109,6 +109,10 @@ if (-not $isMillenniumInstalled) {
     Write-Success "Millennium is already installed."
 }
 
+# 4. Install / Update PieTools Plugin
+$pluginsDir = Join-Path $steamPath "millennium\plugins"
+$pieToolsTarget = Join-Path $pluginsDir "PieTools"
+
 # Clean up conflicting legacy plugins & DLLs
 Write-Step "Cleaning up any conflicting legacy plugins or DLLs..."
 $conflictingDlls = @("SteamDaddy.dll", "OpenSteamTool.dll")
@@ -122,16 +126,14 @@ foreach ($dll in $conflictingDlls) {
 
 $conflictingFolders = @("SteamDaddy", "OpenSteamTool", "steamdaddy")
 foreach ($f in $conflictingFolders) {
-    $p = Join-Path $pluginsDir $f
-    if (Test-Path $p) {
-        Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Success "Removed legacy plugin $f"
+    if (Test-Path $pluginsDir) {
+        $p = Join-Path $pluginsDir $f
+        if (Test-Path $p) {
+            Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Success "Removed legacy plugin $f"
+        }
     }
 }
-
-# 4. Install / Update PieTools Plugin
-$pluginsDir = Join-Path $steamPath "millennium\plugins"
-$pieToolsTarget = Join-Path $pluginsDir "PieTools"
 
 Write-Step "Setting up PieTools plugin..."
 if (-not (Test-Path $pluginsDir)) {
