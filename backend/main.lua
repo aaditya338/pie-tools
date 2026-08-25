@@ -1246,7 +1246,7 @@ function CheckForUpdatesNow(args)
     local plugin_dir = get_plugin_dir()
     local json_path = fs.join(plugin_dir, "plugin.json")
     local content = m_utils.read_file(json_path)
-    local current_version = "2.9.0"
+    local current_version = "1.0.0"
     if content then
         local parsed = safe_json_decode(content)
         if parsed and parsed.version then

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PieTools Banner](https://img.shields.io/badge/PieTools-v2.9.0-31D0FC?style=for-the-badge&logo=steam&logoColor=white)
+![PieTools Banner](https://img.shields.io/badge/PieTools-v1.0.0-31D0FC?style=for-the-badge&logo=steam&logoColor=white)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/SkpMMCp6sv)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
