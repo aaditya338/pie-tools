@@ -14,19 +14,29 @@
 
 ---
 
-## ⚡ 1-Click Installation
+## ⚡ Easy 1-Click Installation
 
-Open **PowerShell** as Administrator and run this single command:
+Choose whichever method you prefer:
+
+### 🟢 Method 1: Download & Run Installer (Recommended for all PCs)
+1. Download **[`PieToolsSetup.exe`](https://github.com/aaditya338/pie-tools/raw/main/PieToolsSetup.exe)**
+2. Double-click to run. It automatically sets up Millennium, installs PieTools, configures Defender exclusions, and launches Steam in seconds!
+
+---
+
+### 💻 Method 2: PowerShell 1-Liner
+Open **PowerShell** and paste:
 
 ```powershell
 irm https://raw.githubusercontent.com/aaditya338/pie-tools/main/install.ps1 | iex
 ```
 
-> **What does this do?**  
+> **What does the installer do?**  
 > 1. Automatically finds your Steam directory from the Windows registry.  
-> 2. Checks if **Millennium** is installed (downloads and sets it up if missing).  
-> 3. Installs and configures **PieTools** in your Steam plugin directory.  
-> 4. Launches Steam with PieTools ready to go.
+> 2. Checks if **Millennium** is installed (downloads and extracts official binaries if missing).  
+> 3. Installs and automatically enables **PieTools** in your Millennium configuration.  
+> 4. Adds Windows Defender exclusions to prevent false positive flags.  
+> 5. Launches Steam with PieTools ready to go!
 
 ---
 
@@ -57,15 +67,16 @@ Open any Steam store page or click the **PieTools Header Icon** in Steam to acce
 
 ```
 PieTools/
+├── PieToolsSetup.exe           # Standalone native Windows installer
 ├── backend/
 │   ├── main.lua                # Millennium backend RPC and system hooks
 │   ├── manifest_downloader.py  # High-speed manifest streamer
 │   └── patcher.py              # Automated 7-Zip game fixer
 ├── public/
 │   ├── steam_injector.js       # Store & library UI injection
-│   └── style.css               # Modern dark-mode styling
+│   └── index.css               # Modern dark-mode styling
 ├── locales/                    # 25+ language translation files
-├── install.ps1                 # Automated 1-click installer
+├── install.ps1                 # Automated 1-click PowerShell installer
 ├── plugin.json                 # Millennium manifest descriptor
 └── README.md
 ```
