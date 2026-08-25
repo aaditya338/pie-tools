@@ -699,20 +699,6 @@ function GetDaddyToken()
 end
 
 
-local function find_python_exe()
-    local candidates = {
-        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
-        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
-        "C:\\Windows\\py.exe",
-        "C:\\Program Files\\Python312\\python.exe",
-        "C:\\Program Files\\Python311\\python.exe"
-    }
-    for _, path in ipairs(candidates) do
-        if fs.exists(path) then return path end
-    end
-    return "python.exe"
-end
 
 function DownloadManifest(appid_arg)
     collect_vps_sync_result()
@@ -736,12 +722,17 @@ function DownloadManifest(appid_arg)
     if fs.exists(error_file) then pcall(os.remove, error_file) end
     
     local plugin_dir = get_plugin_dir()
-    local script_path = fs.join(plugin_dir, "backend", "manifest_downloader.py")
-    local py_exe = find_python_exe()
+    local ps1_script = fs.join(plugin_dir, "backend", "manifest_downloader.ps1")
+    local py_script = fs.join(plugin_dir, "backend", "manifest_downloader.py")
     
-    -- Primary: Run Python manifest downloader
-    local cmd = 'cmd.exe /c ""' .. py_exe .. '" "' .. script_path .. '" ' .. appid .. ' "' .. steam_dir .. '" "' .. temp_dir .. '""'
-    run_hidden_process(cmd, false)
+    -- Universal Native Downloader: Runs via PowerShell with 0 dependencies on all Windows PCs
+    if fs.exists(ps1_script) then
+        local cmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' .. ps1_script .. '" ' .. appid .. ' "' .. steam_dir .. '" "' .. temp_dir .. '"'
+        run_hidden_process(cmd, false)
+    else
+        local cmd = 'cmd.exe /c python "' .. py_script .. '" ' .. appid .. ' "' .. steam_dir .. '" "' .. temp_dir .. '"'
+        run_hidden_process(cmd, false)
+    end
     
     return json_ok({success = true, status = "started"})
 end
