@@ -73,14 +73,14 @@ if (-not $isMillenniumInstalled) {
     $tempZip = Join-Path $env:TEMP "millennium_latest.zip"
     
     try {
-        $releaseApi = "https://api.github.com/repos/shdwmtr/millennium/releases/latest"
+        $releaseApi = "https://api.github.com/repos/SteamClientHomebrew/Millennium/releases/latest"
         $releaseInfo = Invoke-RestMethod -Uri $releaseApi -Headers @{ "User-Agent" = "PieTools-Installer" } -UseBasicParsing
-        $asset = $releaseInfo.assets | Where-Object { $_.name -like "*windows-x86_64.zip*" -or $_.name -like "*x64.zip*" -or $_.name -like "*.zip" } | Select-Object -First 1
+        $asset = $releaseInfo.assets | Where-Object { $_.name -like "*windows-x86_64.zip*" -and $_.name -notlike "*pdb*" } | Select-Object -First 1
         
         if ($asset -and $asset.browser_download_url) {
             $downloadUrl = $asset.browser_download_url
         } else {
-            $downloadUrl = "https://github.com/shdwmtr/millennium/releases/latest/download/millennium-windows-x86_64.zip"
+            $downloadUrl = "https://github.com/SteamClientHomebrew/Millennium/releases/latest/download/millennium-windows-x86_64.zip"
         }
 
         Write-Step "Downloading Millennium from $downloadUrl..."
