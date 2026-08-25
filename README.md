@@ -19,7 +19,7 @@
 Open **PowerShell** as Administrator and run this single command:
 
 ```powershell
-irm https://raw.githubusercontent.com/Pie7nit/PieTools/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/aaditya338/pie-tools/main/install.ps1 | iex
 ```
 
 > **What does this do?**  

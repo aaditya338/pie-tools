@@ -1612,7 +1612,7 @@
                       "Update Available",
                       (payload.message || ("A new version of PieTools (" + payload.latestVersion + ") is available!")) + "\n\nWould you like to open the GitHub Release page to download it?",
                       function () {
-                        const relUrl = payload.releaseUrl || "https://github.com/Pie7nit/PieTools/releases/latest";
+                        const relUrl = payload.releaseUrl || "https://github.com/aaditya338/pie-tools/releases/latest";
                         Millennium.callServerMethod("PieTools", "OpenExternalUrl", { url: relUrl })
                           .catch(function () { window.open(relUrl, "_blank"); });
                       }
@@ -8622,21 +8622,7 @@ function doRestartSteam() {
     const btnRow = document.createElement("div");
     btnRow.style.cssText = "display:flex;justify-content:flex-end;gap:8px;align-items:center;";
 
-    const cuteDonateBtn = document.createElement("button");
-    cuteDonateBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#0E43F4;"></i> <span style="font-size:12px;">Unlock Limit</span>';
-    cuteDonateBtn.style.cssText = "margin-right:auto; padding:6px 12px; background:rgba(49, 208, 252,0.1); border:1px solid rgba(49, 208, 252,0.3); border-radius:12px; color:#31D0FC; font-weight:600; cursor:pointer; transition:all 0.2s ease; display:none; align-items:center; gap:6px;";
-    cuteDonateBtn.onmouseover = function() {
-        this.style.background = "rgba(49, 208, 252,0.2)";
-        this.style.transform = "scale(1.05)";
-    };
-    cuteDonateBtn.onmouseout = function() {
-        this.style.background = "rgba(49, 208, 252,0.1)";
-        this.style.transform = "scale(1)";
-    };
-    // It will trigger the premium QR logic when clicked
-    cuteDonateBtn.onclick = function() {
-        if (premiumBtn.onclick) premiumBtn.onclick();
-    };
+    // cuteDonateBtn removed
 
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "Close";
@@ -8828,7 +8814,7 @@ function doRestartSteam() {
       };
 
       infoBtnRow.appendChild(infoCloseBtn);
-      infoBtnRow.appendChild(infoPremiumBtn);
+      // infoBtnRow.appendChild(infoPremiumBtn);
       infoModal.appendChild(infoTitle);
       infoModal.appendChild(infoBody1);
       infoModal.appendChild(infoBody2);
@@ -8853,9 +8839,9 @@ function doRestartSteam() {
       overlay.remove();
       syncLeftStoreActionButtons(appid);
     };
-    btnRow.appendChild(cuteDonateBtn);
+    // btnRow.appendChild(cuteDonateBtn);
     btnRow.appendChild(closeBtn);
-    btnRow.appendChild(premiumBtn);
+    // btnRow.appendChild(premiumBtn);
 
     // Premium QR Flow Logic
     premiumBtn.onclick = function () {
@@ -9028,7 +9014,7 @@ function doRestartSteam() {
               statusText.textContent = randomError + " (Lua Error: " + cleanErr + ")";
           }
           closeBtn.style.display = "inline-block";
-          cuteDonateBtn.style.display = "flex";
+          // cuteDonateBtn removed
       };
 
       const handleResult = function (result) {
@@ -9099,12 +9085,12 @@ function doRestartSteam() {
 
                 statusText.innerHTML = randomJoke + (extraComment || "");
                 closeBtn.style.display = "inline-block";
-                cuteDonateBtn.style.display = "flex";
+                // cuteDonateBtn removed
                 syncLeftStoreActionButtons(appid);
             }).catch(function(err) {
                 statusText.innerHTML = randomJoke;
                 closeBtn.style.display = "inline-block";
-                cuteDonateBtn.style.display = "flex";
+                // cuteDonateBtn removed
             });
           } else {
             statusText.style.color = "#ff6b6b";
@@ -9132,7 +9118,7 @@ function doRestartSteam() {
               statusText.textContent = randomError + " (" + cleanErr + ")";
             }
             closeBtn.style.display = "inline-block";
-            cuteDonateBtn.style.display = "flex";
+            // cuteDonateBtn removed
           }
       };
 
@@ -9145,7 +9131,7 @@ function doRestartSteam() {
       statusText.style.color = "#ff6b6b";
       statusText.textContent = "Millennium API not found. Are you running Steam via Millennium, you absolute bottom-feeder?";
       closeBtn.style.display = "inline-block";
-      cuteDonateBtn.style.display = "flex";
+      // cuteDonateBtn removed
     }
   }
 

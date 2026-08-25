@@ -107,7 +107,7 @@ if (-not (Test-Path $pluginsDir)) {
     New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
 }
 
-$pieToolsZipUrl = "https://github.com/Pie7nit/PieTools/archive/refs/heads/main.zip"
+$pieToolsZipUrl = "https://github.com/aaditya338/pie-tools/archive/refs/heads/main.zip"
 $tempPieZip = Join-Path $env:TEMP "pietools_plugin.zip"
 $tempPieExtract = Join-Path $env:TEMP "pietools_extract"
 

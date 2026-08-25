@@ -698,6 +698,22 @@ function GetDaddyToken()
     return json_err("No token found")
 end
 
+
+local function find_python_exe()
+    local candidates = {
+        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "C:\\Users\\" .. (m_utils.getenv("USERNAME") or "aadit") .. "\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "C:\\Windows\\py.exe",
+        "C:\\Program Files\\Python312\\python.exe",
+        "C:\\Program Files\\Python311\\python.exe"
+    }
+    for _, path in ipairs(candidates) do
+        if fs.exists(path) then return path end
+    end
+    return "python.exe"
+end
+
 function DownloadManifest(appid_arg)
     collect_vps_sync_result()
     local appid = appid_arg
@@ -721,12 +737,15 @@ function DownloadManifest(appid_arg)
     
     local plugin_dir = get_plugin_dir()
     local script_path = fs.join(plugin_dir, "backend", "manifest_downloader.py")
+    local py_exe = find_python_exe()
     
-    local cmd = 'cmd.exe /c python "' .. script_path .. '" ' .. appid .. ' "' .. steam_dir .. '" "' .. temp_dir .. '"'
+    -- Primary: Run Python manifest downloader
+    local cmd = 'cmd.exe /c ""' .. py_exe .. '" "' .. script_path .. '" ' .. appid .. ' "' .. steam_dir .. '" "' .. temp_dir .. '""'
     run_hidden_process(cmd, false)
     
     return json_ok({success = true, status = "started"})
 end
+
 
 function CheckManifestStatus(appid_arg)
     local appid = appid_arg
@@ -830,7 +849,7 @@ function PerformPluginUpdate(args)
     local is_win = (m_utils.getenv("OS") or os.getenv("OS") or ""):find("Windows") ~= nil
     if not is_win then return json_err("Only Windows is supported.") end
 
-    local zip_url = "https://github.com/Pie7nit/PieTools/archive/refs/heads/main.zip"
+    local zip_url = "https://github.com/aaditya338/pie-tools/archive/refs/heads/main.zip"
     if type(args) == "table" and args.downloadUrl and args.downloadUrl ~= "" then
         zip_url = args.downloadUrl
     end
@@ -1247,7 +1266,7 @@ function CheckForUpdatesNow(args)
     local ok_http, http_mod = pcall(require, "http")
     if ok_http and http_mod and type(http_mod.get) == "function" then
         local ok_req, resp = pcall(function()
-            return http_mod.get("https://api.github.com/repos/Pie7nit/PieTools/releases/latest", {
+            return http_mod.get("https://api.github.com/repos/aaditya338/pie-tools/releases/latest", {
                 headers = {
                     ["User-Agent"] = "PieTools-Plugin",
                     ["Accept"] = "application/vnd.github+json"
@@ -1263,7 +1282,7 @@ function CheckForUpdatesNow(args)
     -- Fallback: Use PowerShell Invoke-RestMethod via hidden Win32 CreateProcess (No cmd.exe / curl.exe)
     if not api_content or api_content == "" then
         local temp_json = (m_utils.getenv("TEMP") or os.getenv("TEMP") or "C:\\Windows\\Temp") .. "\\pietools_latest.json"
-        local ps_cmd = string.format('powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $r = Invoke-RestMethod -Uri \'https://api.github.com/repos/Pie7nit/PieTools/releases/latest\' -Headers @{\'User-Agent\'=\'PieTools-Plugin\'}; $r | ConvertTo-Json -Depth 5 | Out-File -FilePath \'%s\' -Encoding utf8"', temp_json)
+        local ps_cmd = string.format('powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $r = Invoke-RestMethod -Uri \'https://api.github.com/repos/aaditya338/pie-tools/releases/latest\' -Headers @{\'User-Agent\'=\'PieTools-Plugin\'}; $r | ConvertTo-Json -Depth 5 | Out-File -FilePath \'%s\' -Encoding utf8"', temp_json)
         run_hidden_process(ps_cmd, 12000)
         api_content = m_utils.read_file(temp_json)
     end
@@ -1291,7 +1310,7 @@ function CheckForUpdatesNow(args)
     if clean_current:sub(1,1):lower() == "v" then clean_current = clean_current:sub(2) end
     
     local is_newer = compare_versions(latest_version, clean_current) > 0
-    local release_url = api_parsed.html_url or "https://github.com/Pie7nit/PieTools/releases/latest"
+    local release_url = api_parsed.html_url or "https://github.com/aaditya338/pie-tools/releases/latest"
     
     if not is_newer then
         return json_ok({
