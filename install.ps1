@@ -154,7 +154,74 @@ try {
     Write-Err "Remote archive check completed."
 }
 
-# 5. Patch Runtime Process Name for Task Manager
+# 5. Enable PieTools Plugin in Millennium Configuration Automatically
+Write-Step "Enabling PieTools plugin in Millennium configuration..."
+$configDir = Join-Path $steamPath "millennium\config"
+$configFile = Join-Path $configDir "config.json"
+
+if (-not (Test-Path $configDir)) {
+    New-Item -ItemType Directory -Path $configDir -Force -ErrorAction SilentlyContinue | Out-Null
+}
+
+$defaultConfig = @{
+    "general" = @{
+        "accentColor" = "DEFAULT_ACCENT_COLOR"
+        "checkForMillenniumUpdates" = $true
+        "checkForPluginAndThemeUpdates" = $true
+        "injectCSS" = $true
+        "injectJavascript" = $true
+        "millenniumUpdateChannel" = "stable"
+        "onMillenniumUpdate" = 2
+        "shouldShowThemePluginUpdateNotifications" = $true
+    }
+    "misc" = @{
+        "hasShownWelcomeModal" = $true
+    }
+    "notifications" = @{
+        "showNotifications" = $true
+        "showPluginNotifications" = $true
+        "showUpdateNotifications" = $true
+    }
+    "plugins" = @{
+        "enabledPlugins" = @("PieTools")
+    }
+    "themes" = @{
+        "activeTheme" = "default"
+        "allowedScripts" = $true
+        "allowedStyles" = $true
+    }
+}
+
+try {
+    if (Test-Path $configFile) {
+        $raw = Get-Content $configFile -Raw | ConvertFrom-Json
+        if (-not $raw.plugins) {
+            $raw | Add-Member -MemberType NoteProperty -Name "plugins" -Value ([PSCustomObject]@{ "enabledPlugins" = @("PieTools") }) -Force
+        } elseif (-not $raw.plugins.enabledPlugins) {
+            $raw.plugins | Add-Member -MemberType NoteProperty -Name "enabledPlugins" -Value @("PieTools") -Force
+        } else {
+            $list = [System.Collections.ArrayList]@($raw.plugins.enabledPlugins)
+            if (-not $list.Contains("PieTools")) {
+                $list.Add("PieTools") | Out-Null
+            }
+            $raw.plugins.enabledPlugins = $list
+        }
+        if (-not $raw.misc) {
+            $raw | Add-Member -MemberType NoteProperty -Name "misc" -Value ([PSCustomObject]@{ "hasShownWelcomeModal" = $true }) -Force
+        } else {
+            $raw.misc.hasShownWelcomeModal = $true
+        }
+        $raw | ConvertTo-Json -Depth 10 | Set-Content -Path $configFile -Encoding utf8
+    } else {
+        $defaultConfig | ConvertTo-Json -Depth 10 | Set-Content -Path $configFile -Encoding utf8
+    }
+    Write-Success "PieTools automatically enabled in Millennium config!"
+} catch {
+    $defaultConfig | ConvertTo-Json -Depth 10 | Set-Content -Path $configFile -Encoding utf8
+}
+
+
+# 6. Patch Runtime Process Name for Task Manager
 $luavmExe = Join-Path $steamPath "millennium\bin\millennium.luavm64.exe"
 if (Test-Path $luavmExe) {
     try {
