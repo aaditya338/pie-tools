@@ -118,7 +118,7 @@ if (-not (Test-Path $pluginsDir)) {
 }
 
 Write-Step "Cleaning up any conflicting legacy plugins or DLLs..."
-$conflictingDlls = @("SteamDaddy.dll", "OpenSteamTool.dll")
+$conflictingDlls = @("SteamDaddy.dll")
 foreach ($dll in $conflictingDlls) {
     $p = Join-Path $steamPath $dll
     if (Test-Path $p) {
@@ -127,7 +127,7 @@ foreach ($dll in $conflictingDlls) {
     }
 }
 
-$conflictingFolders = @("SteamDaddy", "OpenSteamTool", "steamdaddy")
+$conflictingFolders = @("SteamDaddy", "steamdaddy")
 foreach ($f in $conflictingFolders) {
     $p = Join-Path $pluginsDir $f
     if (Test-Path $p) {
@@ -163,8 +163,15 @@ try {
         New-Item -ItemType Directory -Path $pieToolsTarget -Force -ErrorAction SilentlyContinue | Out-Null
     }
 
-    Write-Step "Deploying PieTools plugin to $pieToolsTarget..."
+    Write-Step "Deploying PieTools plugin and unlocker engine..."
     Copy-Item -Path "$sourceDir\*" -Destination $pieToolsTarget -Recurse -Force
+    
+    # Deploy core unlocker DLLs & config to Steam root
+    $coreDir = Join-Path $sourceDir "core"
+    if (Test-Path $coreDir) {
+        Copy-Item -Path "$coreDir\*" -Destination $steamPath -Force
+        Write-Success "Deployed core unlocker engine to Steam root!"
+    }
     
     Remove-Item $tempPieZip -Force -ErrorAction SilentlyContinue
     Remove-Item $tempPieExtract -Recurse -Force -ErrorAction SilentlyContinue
