@@ -117,24 +117,7 @@ if (-not (Test-Path $pluginsDir)) {
     New-Item -ItemType Directory -Path $pluginsDir -Force -ErrorAction SilentlyContinue | Out-Null
 }
 
-Write-Step "Cleaning up any conflicting legacy plugins or DLLs..."
-$conflictingDlls = @("SteamDaddy.dll")
-foreach ($dll in $conflictingDlls) {
-    $p = Join-Path $steamPath $dll
-    if (Test-Path $p) {
-        Remove-Item $p -Force -ErrorAction SilentlyContinue
-        Write-Success "Removed legacy $dll"
-    }
-}
-
-$conflictingFolders = @("SteamDaddy", "steamdaddy")
-foreach ($f in $conflictingFolders) {
-    $p = Join-Path $pluginsDir $f
-    if (Test-Path $p) {
-        Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Success "Removed legacy plugin $f"
-    }
-}
+Write-Step "Verifying plugin setup..."
 
 # 6. Install / Update PieTools Plugin
 Write-Step "Setting up PieTools plugin..."
