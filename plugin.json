@@ -1,0 +1,15 @@
+{
+    "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
+    "name": "PieTools",
+    "common_name": "Pie Tools",
+    "description": "Pie Tools - Universal Steam enhancement, manifest manager and achievement toolkit.",
+    "version": "1.0.0",
+    "author": "PieTeam",
+    "backendType": "lua",
+    "useBackend": true,
+    "backend": "backend",
+    "webkitApiVersion": "2.0.0",
+    "include": [
+        "public"
+    ]
+}
