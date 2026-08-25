@@ -13,6 +13,8 @@ $errorFile = Join-Path $TempDir "sd_error_$AppId.txt"
 
 Remove-Item $successFile, $errorFile -Force -ErrorAction SilentlyContinue
 
+$browserUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+
 try {
     $workerUrl = "https://icy-recipe-de02.aadityachoudhary333.workers.dev/api/download/$AppId"
     $binPath = Join-Path $TempDir "sd_dl_$AppId.bin"
@@ -21,17 +23,17 @@ try {
     if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue }
     New-Item -ItemType Directory -Path $extractDir -Force | Out-Null
 
-    # Download with curl.exe or Invoke-WebRequest
+    # Download with curl.exe (with redirect follow -L) or Invoke-WebRequest
     $downloaded = $false
     if (Test-Path "C:\Windows\System32\curl.exe") {
-        $proc = Start-Process -FilePath "C:\Windows\System32\curl.exe" -ArgumentList "-s -k -L --ssl-no-revoke -A `"PieTools-Plugin/1.0`" -o `"$binPath`" `"$workerUrl`"" -PassThru -Wait -NoNewWindow
+        $proc = Start-Process -FilePath "C:\Windows\System32\curl.exe" -ArgumentList "-s -k -L --ssl-no-revoke -A `"$browserUA`" -e `"https://generator.ryuu.lol/`" -o `"$binPath`" `"$workerUrl`"" -PassThru -Wait -NoNewWindow
         if ((Test-Path $binPath) -and ((Get-Item $binPath).Length -gt 20)) {
             $downloaded = $true
         }
     }
     
     if (-not $downloaded) {
-        Invoke-WebRequest -Uri $workerUrl -OutFile $binPath -Headers @{ "User-Agent" = "PieTools-Plugin/1.0" } -UseBasicParsing
+        Invoke-WebRequest -Uri $workerUrl -OutFile $binPath -Headers @{ "User-Agent" = $browserUA; "Referer" = "https://generator.ryuu.lol/" } -MaximumRedirection 10 -UseBasicParsing
         if ((Test-Path $binPath) -and ((Get-Item $binPath).Length -gt 20)) {
             $downloaded = $true
         }
