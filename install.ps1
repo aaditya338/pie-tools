@@ -4,7 +4,7 @@
 # ==============================================================================
 
 $ErrorActionPreference = "Stop"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13 } catch {}
 
 function Write-Step ($msg) {
     Write-Host "[PieTools] " -ForegroundColor Cyan -NoNewline
@@ -32,7 +32,7 @@ Write-Host @"
     1-Click Automated Setup for Steam
 "@ -ForegroundColor Cyan
 
-# 1. Self-Elevate to Administrator if needed (for Antivirus exclusions & Program Files access)
+# 1. Self-Elevate to Administrator if needed
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Step "Requesting Administrator privileges for Defender exclusions & setup..."
@@ -44,7 +44,7 @@ if (-not $isAdmin) {
     }
 }
 
-# 1. Locate Steam Installation Directory
+# 2. Locate Steam Installation Directory
 Write-Step "Detecting Steam installation directory..."
 $steamPath = $null
 
@@ -70,12 +70,12 @@ if (-not $steamPath -or -not (Test-Path (Join-Path $steamPath "steam.exe"))) {
 
 Write-Success "Found Steam at: $steamPath"
 
-# 2. Close Running Steam Processes
+# 3. Close Running Steam Processes
 Write-Step "Closing active Steam processes..."
-Get-Process -Name "steam", "steamwebhelper", "millennium.luavm64" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-Process -Name "steam", "steamwebhelper", "millennium.luavm64", "millennium.crashhandler64" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
 
-# 3. Check / Install Millennium
+# 4. Check / Install Millennium
 $millenniumLibDll = Join-Path $steamPath "millennium\lib\millennium.dll"
 $isMillenniumInstalled = Test-Path $millenniumLibDll
 
@@ -109,11 +109,14 @@ if (-not $isMillenniumInstalled) {
     Write-Success "Millennium is already installed."
 }
 
-# 4. Install / Update PieTools Plugin
+# 5. Setup Plugins Directory & Clean Conflicts
 $pluginsDir = Join-Path $steamPath "millennium\plugins"
 $pieToolsTarget = Join-Path $pluginsDir "PieTools"
 
-# Clean up conflicting legacy plugins & DLLs
+if (-not (Test-Path $pluginsDir)) {
+    New-Item -ItemType Directory -Path $pluginsDir -Force -ErrorAction SilentlyContinue | Out-Null
+}
+
 Write-Step "Cleaning up any conflicting legacy plugins or DLLs..."
 $conflictingDlls = @("SteamDaddy.dll", "OpenSteamTool.dll")
 foreach ($dll in $conflictingDlls) {
@@ -126,20 +129,15 @@ foreach ($dll in $conflictingDlls) {
 
 $conflictingFolders = @("SteamDaddy", "OpenSteamTool", "steamdaddy")
 foreach ($f in $conflictingFolders) {
-    if (Test-Path $pluginsDir) {
-        $p = Join-Path $pluginsDir $f
-        if (Test-Path $p) {
-            Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Success "Removed legacy plugin $f"
-        }
+    $p = Join-Path $pluginsDir $f
+    if (Test-Path $p) {
+        Remove-Item $p -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Success "Removed legacy plugin $f"
     }
 }
 
+# 6. Install / Update PieTools Plugin
 Write-Step "Setting up PieTools plugin..."
-if (-not (Test-Path $pluginsDir)) {
-    New-Item -ItemType Directory -Path $pluginsDir -Force | Out-Null
-}
-
 $pieToolsZipUrl = "https://github.com/aaditya338/pie-tools/archive/refs/heads/main.zip"
 $tempPieZip = Join-Path $env:TEMP "pietools_plugin.zip"
 $tempPieExtract = Join-Path $env:TEMP "pietools_extract"
@@ -162,7 +160,7 @@ try {
     }
 
     if (-not (Test-Path $pieToolsTarget)) {
-        New-Item -ItemType Directory -Path $pieToolsTarget -Force | Out-Null
+        New-Item -ItemType Directory -Path $pieToolsTarget -Force -ErrorAction SilentlyContinue | Out-Null
     }
 
     Write-Step "Deploying PieTools plugin to $pieToolsTarget..."
@@ -173,10 +171,10 @@ try {
 
     Write-Success "PieTools plugin installed successfully!"
 } catch {
-    Write-Err "Remote archive check completed."
+    Write-Err "Could not download remote archive: $_"
 }
 
-# 5. Enable PieTools Plugin in Millennium Configuration Automatically
+# 7. Enable PieTools Plugin in Millennium Configuration Automatically
 Write-Step "Enabling PieTools plugin in Millennium configuration..."
 $configDir = Join-Path $steamPath "millennium\config"
 $configFile = Join-Path $configDir "config.json"
@@ -242,8 +240,7 @@ try {
     $defaultConfig | ConvertTo-Json -Depth 10 | Set-Content -Path $configFile -Encoding utf8
 }
 
-
-# 6. Windows Defender & Antivirus Comprehensive Exclusions
+# 8. Windows Defender Exclusions
 Write-Step "Configuring Windows Defender exclusions for Millennium & PieTools..."
 try {
     $excludePaths = @(
@@ -260,7 +257,6 @@ try {
         Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
     }
     
-    # Exclude active runtime binaries
     $excludeProcesses = @(
         "millennium.luavm64.exe",
         "millennium.crashhandler64.exe",
@@ -270,11 +266,9 @@ try {
         Add-MpPreference -ExclusionProcess $proc -ErrorAction SilentlyContinue
     }
     Write-Success "Windows Defender exclusions configured successfully!"
-} catch {
-    Write-Err "Could not automatically add Defender exclusions (requires Administrator)."
-}
+} catch {}
 
-# 7. Start Steam
+# 9. Start Steam
 Write-Step "Starting Steam..."
 $steamExe = Join-Path $steamPath "steam.exe"
 Start-Process $steamExe
