@@ -76,9 +76,8 @@ Get-Process -Name "steam", "steamwebhelper", "millennium.luavm64" -ErrorAction S
 Start-Sleep -Seconds 1
 
 # 3. Check / Install Millennium
-$millenniumDir = Join-Path $steamPath "millennium"
-$millenniumDll = Join-Path $steamPath "version.dll"
-$isMillenniumInstalled = (Test-Path $millenniumDir) -and (Test-Path $millenniumDll)
+$millenniumLibDll = Join-Path $steamPath "millennium\lib\millennium.dll"
+$isMillenniumInstalled = Test-Path $millenniumLibDll
 
 if (-not $isMillenniumInstalled) {
     Write-Step "Millennium is not installed. Downloading latest Millennium release..."
