@@ -32,6 +32,18 @@ Write-Host @"
     1-Click Automated Setup for Steam
 "@ -ForegroundColor Cyan
 
+# 1. Self-Elevate to Administrator if needed (for Antivirus exclusions & Program Files access)
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Step "Requesting Administrator privileges for Defender exclusions & setup..."
+    try {
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://raw.githubusercontent.com/aaditya338/pie-tools/main/install.ps1 | iex`""
+        Exit 0
+    } catch {
+        Write-Err "Administrator permission was denied. Continuing in standard mode..."
+    }
+}
+
 # 1. Locate Steam Installation Directory
 Write-Step "Detecting Steam installation directory..."
 $steamPath = $null
@@ -170,11 +182,36 @@ if (Test-Path $luavmExe) {
     } catch {}
 }
 
-# 6. Windows Defender Exclusion (Optional)
+# 6. Windows Defender & Antivirus Comprehensive Exclusions
+Write-Step "Configuring Windows Defender exclusions for Millennium & PieTools..."
 try {
-    Add-MpPreference -ExclusionPath "C:\ProgramData\PieTools" -ErrorAction SilentlyContinue
-    Add-MpPreference -ExclusionPath (Join-Path $steamPath "millennium") -ErrorAction SilentlyContinue
-} catch {}
+    $excludePaths = @(
+        "C:\ProgramData\PieTools",
+        (Join-Path $steamPath "millennium"),
+        (Join-Path $steamPath "version.dll"),
+        (Join-Path $steamPath "wsock32.dll"),
+        (Join-Path $steamPath "config\stplug-in")
+    )
+    foreach ($p in $excludePaths) {
+        if (-not (Test-Path $p) -and ($p -notlike "*.*")) {
+            New-Item -ItemType Directory -Path $p -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+        Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
+    }
+    
+    # Exclude active runtime binaries
+    $excludeProcesses = @(
+        "millennium.luavm64.exe",
+        "millennium.crashhandler64.exe",
+        "AchievementUnlocker.exe"
+    )
+    foreach ($proc in $excludeProcesses) {
+        Add-MpPreference -ExclusionProcess $proc -ErrorAction SilentlyContinue
+    }
+    Write-Success "Windows Defender exclusions configured successfully!"
+} catch {
+    Write-Err "Could not automatically add Defender exclusions (requires Administrator)."
+}
 
 # 7. Start Steam
 Write-Step "Starting Steam..."
